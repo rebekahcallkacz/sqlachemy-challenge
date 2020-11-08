@@ -43,9 +43,16 @@ def home():
 @app.route('/api/v1.0/precipitation')
 def precipitation():
     print('Requesting precipitation data...')
-    # Pull data from database
+    # Connect to database
     session = Session(engine)
-    results = session.query(Measurement.date, Measurement.prcp).all()
+
+    # Determine date that is one year from latest date in dataset
+    last_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()[0]
+    last_date_dt = dt.datetime.strptime(last_date, '%Y-%m-%d')
+    year_ago = last_date_dt - dt.timedelta(days=366)
+
+    # Pull data from database
+    results = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date >= year_ago).all()
     session.close()
 
     # Store data in list of dictionaries
