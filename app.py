@@ -39,7 +39,8 @@ def home():
         f'Min, avg and max temperatures on or after given date: /api/v1.0/<start><br/>'
         f'Min, avg and max temperatures for date range: /api/v1.0/<start>/<end><br/>'
     )
-
+#TODO Figure out what to do about multiple dates/dict keys are dates
+#TODO group by date and determine avg. temp for each date
 @app.route('/api/v1.0/precipitation')
 def precipitation():
     print('Requesting precipitation data...')
@@ -65,6 +66,7 @@ def precipitation():
     # Return data in JSON format
     return jsonify(precipitation_data)
 
+# Call all data from station table
 @app.route('/api/v1.0/stations')
 def stations():
     print('Requesting station data')
@@ -107,9 +109,8 @@ def tobs():
     # Store data in list of dictionaries
     temp_data = []
     for date, tobs in results:
-        date_dict = {}
-        date_dict[date] = tobs
-        temp_data.append(date_dict)
+        date_tuple = (date, tobs)
+        temp_data.append(date_table)
     
     # Return data in JSON format
     return jsonify(temp_data)
