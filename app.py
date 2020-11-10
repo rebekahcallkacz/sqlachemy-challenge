@@ -27,6 +27,7 @@ app = Flask(__name__)
 
 # Flask Routes
 
+#This route returns information about the available routes.
 @app.route('/')
 def home():
     print("Requesting home page...")
@@ -39,8 +40,9 @@ def home():
         f'Min, avg and max temperatures on or after given date: /api/v1.0/<start><br/>'
         f'Min, avg and max temperatures for date range: /api/v1.0/<start>/<end><br/>'
     )
-#TODO Figure out what to do about multiple dates/dict keys are dates
-#TODO group by date and determine avg. temp for each date
+
+# This route returns the average precipitation for each day in the format of a dictionary (date: avg prcp). 
+# I calculated the average to account for the fact that the dataset includes multiple measurements per date.
 @app.route('/api/v1.0/precipitation')
 def precipitation():
     print('Requesting precipitation data...')
@@ -53,34 +55,44 @@ def precipitation():
     year_ago = last_date_dt - dt.timedelta(days=366)
 
     # Pull data from database
-    results = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date >= year_ago).all()
+    results = session.query(Measurement.date, func.avg(Measurement.prcp)).filter(Measurement.date >= year_ago).group_by(Measurement.date).all()
     session.close()
 
     # Store data in list of dictionaries
     precipitation_data = []
     for date, prcp in results:
         date_dict = {}
-        date_dict[date] = prcp
+        date_dict[date] = round(prcp, 2)
         precipitation_data.append(date_dict)
 
     # Return data in JSON format
     return jsonify(precipitation_data)
 
-# Call all data from station table
+# This route returens all data about the stations.
 @app.route('/api/v1.0/stations')
 def stations():
     print('Requesting station data')
     # Pull data from database
     session = Session(engine)
-    results = session.query(Station.name).all()
+    results = session.query(Station.name, Station.station, Station.longitude, Station.latitude, Station.elevation).all()
     session.close()
 
     # Store data in list
-    all_stations = list(np.ravel(results))
+    all_stations = []
+
+    for station in results:
+        station_dict = {}
+        station_dict['Station Name'] = station.name
+        station_dict['Station ID'] = station.station
+        station_dict['Lat'] = station.latitude
+        station_dict['Lng'] = station.longitude
+        station_dict['Elev'] = station.elevation
+        all_stations.append(station_dict)
 
     # Return data in JSON format
     return jsonify(all_stations)
 
+# This route returns the last year's temperatures for the most active station.
 @app.route('/api/v1.0/tobs')
 def tobs():
     print('Requestion tobs data')
@@ -110,24 +122,23 @@ def tobs():
     temp_data = []
     for date, tobs in results:
         date_tuple = (date, tobs)
-        temp_data.append(date_table)
+        temp_data.append(date_tuple)
     
     # Return data in JSON format
     return jsonify(temp_data)
 
 @app.route('/api/v1.0/<start>')
 def by_date(start):
-    start_date = start.replace("<", "").replace(">", "")
     # Pull data from database
     session = Session(engine)
     results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= start_date).all()
+        filter(Measurement.date >= start).all()
     session.close()
 
     # Store data in list of dictionaries
     temp_data = {}
     temp_data['Min Temp'] = results[0][0]
-    temp_data['Avg Temp'] = results[0][1]
+    temp_data['Avg Temp'] = round(results[0][1], 2)
     temp_data['Max Temp'] = results[0][2]
 
     # Return data in JSON format
@@ -135,18 +146,16 @@ def by_date(start):
     
 @app.route('/api/v1.0/<start>/<end>')
 def by_date_range(start, end):
-    start_date = start.replace("<", "").replace(">", "")
-    end_date = end.replace("<", "").replace(">", "")
     # Pull data from database
     session = Session(engine)
     results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= start_date).filter(Measurement.date <= end_date).all()
+        filter(Measurement.date >= start).filter(Measurement.date <= end).all()
     session.close()
 
     # Store data in list of dictionaries
     temp_data = {}
     temp_data['Min Temp'] = results[0][0]
-    temp_data['Avg Temp'] = results[0][1]
+    temp_data['Avg Temp'] = round(results[0][1], 2)
     temp_data['Max Temp'] = results[0][2]
 
     # Return data in JSON format
