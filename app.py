@@ -62,13 +62,13 @@ def precipitation():
     precipitation_data = []
     for date, prcp in results:
         date_dict = {}
-        date_dict[date] = round(prcp, 2)
+        date_dict[date] = prcp
         precipitation_data.append(date_dict)
 
     # Return data in JSON format
     return jsonify(precipitation_data)
 
-# This route returens all data about the stations.
+# This route returns all data about the stations.
 @app.route('/api/v1.0/stations')
 def stations():
     print('Requesting station data')
