@@ -15,6 +15,7 @@ engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # Reflect an existing database into a new model
 Base = automap_base()
+
 # Reflect the tables
 Base.prepare(engine, reflect=True)
 
@@ -37,8 +38,8 @@ def home():
         f'Precipitation measured by day: /api/v1.0/precipitation<br/>'
         f'List of stations: /api/v1.0/stations<br/>'
         f'Dates and temperature observations of most active station: /api/v1.0/tobs<br/>'
-        f'Min, avg and max temperatures on or after given date: /api/v1.0/<start><br/>'
-        f'Min, avg and max temperatures for date range: /api/v1.0/<start>/<end><br/>'
+        f'Min, avg and max temperatures on or after given date: /api/v1.0/start-date<br/>'
+        f'Min, avg and max temperatures for date range: /api/v1.0/start-date/end-date<br/>'
     )
 
 # This route returns the average precipitation for each day in the format of a dictionary (date: avg prcp). 
@@ -77,9 +78,8 @@ def stations():
     results = session.query(Station.name, Station.station, Station.longitude, Station.latitude, Station.elevation).all()
     session.close()
 
-    # Store data in list
+    # Store data in list of dictionaries
     all_stations = []
-
     for station in results:
         station_dict = {}
         station_dict['Station Name'] = station.name
@@ -109,16 +109,16 @@ def tobs():
     most_active = session.query(Measurement.station, func.count(Measurement.id)\
         .label('frqcy'))\
         .group_by(Measurement.station)\
-        .order_by(desc('frqcy')).all()
+        .order_by(desc('frqcy')).first()
 
     # Pull data from database
     results = session.query(Measurement.date, Measurement.tobs)\
                     .filter(Measurement.date >= year_ago)\
-                    .filter(Measurement.station == most_active[0][0])\
+                    .filter(Measurement.station == most_active[0])\
                     .all()
     session.close()
 
-    # Store data in list of dictionaries
+    # Store data in list of tuples
     temp_data = []
     for date, tobs in results:
         date_tuple = (date, tobs)
