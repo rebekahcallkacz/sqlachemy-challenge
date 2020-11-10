@@ -8,9 +8,15 @@ This project analyzes climate data from Hawaii.
 
 ## Data
 
-![alt text](https://github.com/rebekahcallkacz/sql-challenge/blob/main/EmployeeSQL/Output/erd.jpg "ERD")
-
 ## Analysis
+
+![alt text](https://github.com/rebekahcallkacz/sqlachemy-challenge/blob/main/Images/avgrainfall.png "Avg Rainfall for Last Year")
+
+![alt text](https://github.com/rebekahcallkacz/sqlachemy-challenge/blob/main/Images/tempsmostactivestation.png "Most Active Station Rainfall")
+
+![alt text](https://github.com/rebekahcallkacz/sqlachemy-challenge/blob/main/Images/avgrainfall.png "Avg Rainfall for Last Year")
+
+![alt text](https://github.com/rebekahcallkacz/sqlachemy-challenge/blob/main/Images/avgrainfall.png "Avg Rainfall for Last Year")
 
 ## Instructions
 
